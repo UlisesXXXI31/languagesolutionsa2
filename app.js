@@ -52,6 +52,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const sonidoCorrcto = new Audio("/audios/correcto.mp3");
     const sonidoIncorrecto = new Audio("/audios/incorrecto.mp3");
 
+    // Registro del Service Worker (versión GitHub Pages)
+// Registrar el Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('✅ Service Worker registrado con éxito');
+      })
+      .catch(err => {
+        console.log('❌ Fallo en el registro:', err);
+      });
+  });
+}
+
     // ---- FUNCIONES DE NAVEGACIÓN Y LÓGICA DE LA APLICACIÓN ----
     function ocultarTodasLasPantallas() {
         const pantallas = document.querySelectorAll('.pantalla');

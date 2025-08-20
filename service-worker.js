@@ -4,18 +4,22 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox
 
 const CACHE_NAME = "deutschapp-page-v1";
 
-const OFFLINE_URL = "/language_solutions/offline.html"; // Asegúrate que este archivo exista y esté en esa ruta
+const OFFLINE_URL = "/offline.html"; // Asegúrate que este archivo exista y esté en esa ruta
 
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll([
         OFFLINE_URL,
-        '/language_solutions/index.html',
-        '/language_solutions/style.css',
-        '/language_solutions/app.js',
-        '/language_solutions/palabras.js',
-        '/language_solutions/EIS.jpg'
+        '/index.html',
+        '/style.css',
+        '/app.js',
+        'palabras.js',
+        '/image/EIS.jpg',
+        '/login.html',
+        '/teacher.html',
+        '/login.js',
+        '/teacher.js'
       ]);
     })
   );

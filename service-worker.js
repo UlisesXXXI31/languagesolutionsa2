@@ -15,7 +15,7 @@ self.addEventListener("install", event => {
         '/style.css',
         '/app.js',
         'palabras.js',
-        '/EIS.jpg',
+        '/eis.jpg',
         '/login.html',
         '/teacher.html',
         '/login.js',

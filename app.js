@@ -52,7 +52,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const sonidoCorrcto = new Audio("/audios/correcto.mp3");
     const sonidoIncorrecto = new Audio("/audios/incorrecto.mp3");
 
-    console.log("Service Worker file loaded!");
+    cconsole.log("¡Hola! El archivo app.js se está ejecutando.");
+    // Dentro de tu archivo app.js
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // La ruta correcta INCLUYE el nombre del repositorio
+    navigator.serviceWorker.register('/languagesolutionsa2/service-worker.js')
+      .then(registration => {
+        console.log('✅ ¡Service Worker registrado correctamente!');
+        console.log('Scope:', registration.scope); // Esto te dirá el alcance del SW
+      })
+      .catch(err => {
+        // Este error te dará la pista definitiva
+        console.error('❌ Fallo en el registro del Service Worker:', err);
+      });
+  });
+}
+    
 
     // ---- FUNCIONES DE NAVEGACIÓN Y LÓGICA DE LA APLICACIÓN ----
     function ocultarTodasLasPantallas() {

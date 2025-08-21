@@ -1,27 +1,19 @@
-// This is the "Offline page" service worker
-
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
-
 const CACHE_NAME = "deutschapp-page-v1";
+const OFFLINE_URL = "/offline.html";
 
-const OFFLINE_URL = "/offline.html"; // Asegúrate que este archivo exista y esté en esa ruta
+// Cache solo los esenciales para GitHub
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/app.js',
+  '/offline.html'
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll([
-        OFFLINE_URL,
-        '/index.html',
-        '/style.css',
-        '/app.js',
-        'palabras.js',
-        '/EIS.jpg',
-        '/login.html',
-        '/teacher.html',
-        '/login.js',
-        '/teacher.js'
-        
-      ]);
+      return cache.addAll(urlsToCache);
     })
   );
   self.skipWaiting();
@@ -32,30 +24,41 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener('fetch', event => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith((async () => {
-      try {
-        const preloadResponse = await event.preloadResponse;
-        if (preloadResponse) {
-          return preloadResponse;
-        }
-        const networkResponse = await fetch(event.request);
-        return networkResponse;
-      } catch (error) {
-        const cache = await caches.open(CACHE_NAME);
-        const cachedResponse = await cache.match(OFFLINE_URL);
-        return cachedResponse;
-      }
-    })());
-  } else {
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        return response || fetch(event.request);
-      })
-    );
+  // Solo cachear solicitudes GET y del mismo origen
+  if (event.request.method !== 'GET' || 
+      !event.request.url.startsWith(self.location.origin)) {
+    return;
   }
-});
 
-if (workbox.navigationPreload.isSupported()) {
-  workbox.navigationPreload.enable();
-}
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Devolver cache si existe
+        if (response) {
+          return response;
+        }
+
+        // Hacer fetch y cachear
+        return fetch(event.request).then(response => {
+          // Solo cachear respuestas válidas
+          if (!response || response.status !== 200 || response.type !== 'basic') {
+            return response;
+          }
+
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME)
+            .then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+
+          return response;
+        });
+      })
+      .catch(() => {
+        // Para navegación, devolver offline
+        if (event.request.mode === 'navigate') {
+          return caches.match(OFFLINE_URL);
+        }
+      })
+  );
+});

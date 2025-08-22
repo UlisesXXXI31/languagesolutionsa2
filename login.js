@@ -20,38 +20,41 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            try {
-                const response = await fetch('https://ls-api-nine.vercel.app/api/auth/login', { /* ... */ });
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, password: password })
-                });
-                const data = await response.json();
+           try {
+    // La función fetch ENVUELVE tanto la URL como el objeto de opciones
+    const response = await fetch('https://ls-api-nine.vercel.app/api/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email, password: password })
+    }); // <-- El paréntesis del fetch se cierra aquí, después de todas las opciones.
 
-                if (!response.ok) {
-                    throw new Error(data.message || 'Error en el inicio de sesión');
-                }
+    const data = await response.json();
 
-                if (data.user.role === 'student') {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('role', data.user.role);
-                    localStorage.setItem('userData', JSON.stringify(data.user));
-                    window.location.href = 'index.html';
-                } else if (data.user.role === 'teacher') {
-    // AÑADE ESTAS LÍNEAS ANTES DE REDIRIGIR
-                 localStorage.setItem('token', data.token);
-                localStorage.setItem('role', data.user.role);
-                localStorage.setItem('userData', JSON.stringify(data.user));
-                window.location.href = 'teacher.html';
+    if (!response.ok) {
+        throw new Error(data.message || 'Error en el inicio de sesión');
+    }
+
+    if (data.user.role === 'student') {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        window.location.href = 'index.html';
+    } else if (data.user.role === 'teacher') {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.user.role);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        window.location.href = 'teacher.html';
+    }
+    // ...
+} catch (error) {
+    console.error("Error al iniciar sesión:", error);
+    if (statusMessage) {
+        statusMessage.textContent = error.message;
+        statusMessage.style.color = 'red';
+    }
 }
-// ...
-            } catch (error) {
-                console.error("Error al iniciar sesión:", error);
-                if (statusMessage) {
-                    statusMessage.textContent = error.message;
-                    statusMessage.style.color = 'red';
-                }
-            }
         });
     }
 });

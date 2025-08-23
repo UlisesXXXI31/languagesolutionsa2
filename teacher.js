@@ -130,45 +130,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Evento para añadir un nuevo alumno al enviar el formulario
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = studentNameInput.value;
-        const email = studentEmailInput.value;
-        const password = 'password123'; // Considera generar una contraseña más segura o aleatoria
-        statusMessage.textContent = "Añadiendo alumno...";
-        statusMessage.style.color = "black";
+    // REEMPLAZA LA FUNCIÓN COMPLETA DEL FORMULARIO CON ESTA
 
-        if (!email.endsWith('@europaschool.org')) {
-            statusMessage.textContent = "Error: El correo debe terminar en @europaschool.org";
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = studentNameInput.value;
+    const email = studentEmailInput.value;
+    const password = 'password123';
+    statusMessage.textContent = "Añadiendo alumno...";
+    statusMessage.style.color = "black";
+
+    if (!email.endsWith('@europaschool.org')) {
+        statusMessage.textContent = "Error: El correo debe terminar en @europaschool.org";
+        statusMessage.style.color = "red";
+        return;
+    }
+
+    try {
+        // NOTA: Tu API para registrar un usuario es '/api/users/register'.
+        // He corregido la ruta aquí también.
+        const response = await fetch(`${API_BASE_URL}/api/users/register`, { 
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name, email, password, role: 'student' })
+        });
+        
+        const data = await response.json();
+
+        if (response.ok) {
+            // La respuesta de tu API de registro no devuelve data.user.name,
+            // así que usamos el nombre que ya tenemos.
+            statusMessage.textContent = `¡Alumno ${name} añadido con éxito!`;
+            statusMessage.style.color = "green";
+            form.reset();
+            await fetchAndDisplayStudents(); // Refresca la lista de alumnos
+        } else {
+            statusMessage.textContent = `Error al añadir alumno: ${data.message}`;
             statusMessage.style.color = "red";
-            return;
         }
-
-        try {
-            // NOTA: La ruta para registrar usuarios suele ser '/api/users/register'
-            // CORREGIDO: Usa la variable API_BASE_URL
-            const response = await fetch(`${API_BASE_URL}/api/users`, { // Revisa si esta es la ruta correcta o si debería ser '/api/users/register'
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ name, email, password, role: 'student' })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                statusMessage.textContent = `¡Alumno ${data.user.name} añadido con éxito!`;
-                statusMessage.style.color = "green";
-                form.reset();
-                await fetchAndDisplayStudents();
-            } else {
-                statusMessage.textContent = `Error al añadir alumno: ${data.message}`;
-                statusMessage.style.color = "red";
-            console.error("Error:", error);
-        }
-    });
+    } catch (error) { // <-- ESTE ES EL BLOQUE QUE FALTABA
+        statusMessage.textContent = "Error de red. Intenta de nuevo más tarde.";
+        statusMessage.style.color = "red";
+        console.error("Error:", error);
+    }
+});
 
     // Carga inicial de los alumnos
     fetchAndDisplayStudents();

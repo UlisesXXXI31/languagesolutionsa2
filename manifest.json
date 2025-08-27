@@ -7,19 +7,17 @@
   "scope": ".",
   "start_url": ".",
   "orientation": "portrait",
-  "icons": [
-    {
-      "src": "/languagesolutionsa2/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/languagesolutionsa2/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
-  ],
+ "icons": [
+  {
+    "src": "https://i.imgur.com/OqVl2z3.jpeg",
+    "sizes": "192x192",
+    "type": "image/jpeg"
+  },
+  {
+    "src": "https://i.imgur.com/OqVl2z3.jpeg",
+    "sizes": "512x512",
+    "type": "image/jpeg"
+  }
+],
   "description": "Se trata de una aplicación web dirigida a alumnos que estudian alemán, para que puedan aprender vocabulario del nivel A2 de manera interactiva, a través de varias actividades."
 }

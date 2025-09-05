@@ -1,4 +1,5 @@
 // app.js
+const API_BASE_URL = 'https://ls-api-nine.vercel.app';
 document.addEventListener("DOMContentLoaded", () => {
     // ---- LÓGICA DE AUTENTICACIÓN ----
     const token = localStorage.getItem('token');
@@ -52,13 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const sonidoCorrcto = new Audio("audios/correcto.mp3");
     const sonidoIncorrecto = new Audio("audios/incorrecto.mp3");
 
-   // Registro del Service Worker
+     // Registro del Service Worker
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/service-worker.js', {
-                scope: '/'
-            })
+navigator.serviceWorker.register('/languagesolutionsa1/service-worker.js', {
+    scope: '/languagesolutionsa1/' // <-- ¡AÑADE/CORRIGE ESTA LÍNEA!
+})
+// ... el resto de tu .then y .catch'
+            
             .then(function(registration) {
                 console.log('✅ SW registrado correctamente con scope:', registration.scope);
                 
@@ -205,6 +208,7 @@ registerServiceWorker();
         btnVolverLecciones.addEventListener("click", () => {
             guardarPuntuacionEnHistorial();
             mostrarPantalla("pantalla-lecciones");
+            mostrarLecciones();
             actividadJuego.innerHTML = "";
         });
     }
@@ -230,8 +234,9 @@ registerServiceWorker();
         });
     }
 
-    // Funciones de historial y API
+   // Funciones de historial y API
     function guardarPuntuacionEnHistorial() {
+        console.log("Dentro de guardarPuntuacionEnHistorial()...");
         const userData = JSON.parse(localStorage.getItem('userData'));
         if (!userData || !userData.id) {
             console.error("Error: No se pudo guardar el progreso. Usuario no autenticado.");
@@ -259,18 +264,21 @@ registerServiceWorker();
         }
 
         const progressData = {
-            userId: userData.id,
-            lessonname: leccionActual ? leccionActual.nombre : "Sin lección",
-            taskName: actividadActual || "Sin actividad",
-            score: puntosSesion,
-            completed: true
-        };
+    user: userData.id,
+    lessonName: leccionActual ? leccionActual.nombre : "Sin lección", // <-- 'n' minúscula
+    taskName: actividadActual || "Sin actividad",
+    score: puntosSesion,
+    completed: true
+};
+        
+          // --- PUNTOS DE CONTROL ---
+    console.log("Intentando enviar los siguientes datos de progreso:", progressData);
 
         fetch(`${API_BASE_URL}/api/progress`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(progressData)
-        })
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify(progressData)
+       })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Error al guardar el progreso en el servidor.');
@@ -281,8 +289,9 @@ registerServiceWorker();
                 console.log("Progreso guardado con éxito en el servidor:", data);
             })
             .catch(error => {
-                console.error('Hubo un problema con la petición:', error);
+                 console.error('ERROR GRAVE al guardar el progreso en el servidor:', error);
             });
+        
 
         const historial = JSON.parse(localStorage.getItem("historialPuntos")) || [];
         historial.push({
@@ -397,12 +406,14 @@ registerServiceWorker();
         }
     }
 
-    // Código de la actividad "Emparejar"
+      // Código de la actividad "Emparejar"
     let emparejarPalabras = [];
     let emparejarPares = [];
     let emparejarSeleccionados = [];
     let emparejarBloque = 0;
     const BLOQUE_TAMANIO = 10;
+    let bloquePalabrasActual = []; 
+  
 
     function iniciarEmparejar() {
         emparejarPalabras = [...leccionActual.palabras];
@@ -413,100 +424,122 @@ registerServiceWorker();
     }
 
     function cargarBloqueEmparejar() {
-        emparejarSeleccionados = [];
-        if (actividadJuego) actividadJuego.innerHTML = "";
-        const inicio = emparejarBloque * BLOQUE_TAMANIO;
-        const fin = Math.min(inicio + BLOQUE_TAMANIO, emparejarPalabras.length);
-        const bloquePalabras = emparejarPalabras.slice(inicio, fin);
-        const alemanArr = bloquePalabras.map(p => p.aleman);
-        const espanolArr = bloquePalabras.map(p => p.espanol);
-        const espanolMezclado = espanolArr.sort(() => Math.random() - 0.5);
-        if (actividadJuego) {
-            actividadJuego.innerHTML = `
-                <p>Empareja las palabras en alemán con su traducción en español:</p>
-                <div id="palabras-aleman" class="contenedor-palabras"></div>
-                <div id="palabras-espanol" class="contenedor-palabras"></div>
-                <div id="mensaje-feedback" style="margin-top:1rem;"></div>
-            `;
+    emparejarSeleccionados = [];
+    if (actividadJuego) actividadJuego.innerHTML = "";
+    const inicio = emparejarBloque * BLOQUE_TAMANIO;
+    const fin = Math.min(inicio + BLOQUE_TAMANIO, emparejarPalabras.length);
+    
+    // Asigna a la variable global/externa
+    bloquePalabrasActual = emparejarPalabras.slice(inicio, fin); 
+    
+    const alemanArr = bloquePalabrasActual.map(p => p.aleman);
+    const espanolArr = bloquePalabrasActual.map(p => p.espanol);
+    const espanolMezclado = espanolArr.sort(() => Math.random() - 0.5);
+    if (actividadJuego) {
+        actividadJuego.innerHTML = `
+            <p>Empareja las palabras en alemán con su traducción en español:</p>
+            <div id="palabras-aleman" class="contenedor-palabras"></div>
+            <div id="palabras-espanol" class="contenedor-palabras"></div>
+            <div id="mensaje-feedback" style="margin-top:1rem;"></div>
+        `;
+    }
+    const contenedorAleman = document.getElementById("palabras-aleman");
+    const contenedorEspanol = document.getElementById("palabras-espanol");
+    // Nota: 'feedback' también debería ser global o pasado como argumento si no lo es ya
+    // const feedback = document.getElementById("mensaje-feedback"); // <-- Si no es global, mover esta línea fuera de la función o a iniciarEmparejar
+
+    alemanArr.forEach(p => { // Itera sobre alemanArr, no bloquePalabrasActual, para crear botones
+        const btnAlem = document.createElement("button");
+        btnAlem.textContent = p; // Usar p directamente, que ya es la palabra
+        btnAlem.className = "btn-palabra";
+        btnAlem.addEventListener("click", () => seleccionarEmparejar("aleman", btnAlem, p)); // Usar p
+        if (contenedorAleman) contenedorAleman.appendChild(btnAlem);
+    });
+
+    espanolMezclado.forEach(espanol => {
+        const btnEsp = document.createElement("button");
+        btnEsp.textContent = espanol;
+        btnEsp.className = "btn-palabra";
+        btnEsp.addEventListener("click", () => seleccionarEmparejar("espanol", btnEsp, espanol));
+        if (contenedorEspanol) contenedorEspanol.appendChild(btnEsp);
+    });
+
+    // La función seleccionarEmparejar ya no debe estar anidada aquí.
+    // Debe ser una función separada en el mismo ámbito que cargarBloqueEmparejar.
+    // La voy a mover en el siguiente paso.
+}
+
+       // ... después de cargarBloqueEmparejar o al mismo nivel de ámbito global
+function seleccionarEmparejar(tipo, btn, valor) {
+    // Asegúrate de que 'feedback', 'puntos', 'actualizarPuntos', 'sonidoCorrcto', 'sonidoIncorrecto'
+    // sean accesibles globalmente o pasados como argumentos si son locales.
+    // Por la forma en que los usas, asumo que son globales.
+    const feedback = document.getElementById("mensaje-feedback"); // Mejor obtenerlo aquí cada vez si no es global
+
+    if (emparejarSeleccionados.length === 2) return;
+    if (emparejarSeleccionados.find(s => s.tipo === tipo)) return;
+    btn.classList.add("seleccionada");
+    emparejarSeleccionados.push({ tipo, btn, valor });
+    if (emparejarSeleccionados.length === 2) {
+        let palabraAleman, palabraEspanol;
+        if (emparejarSeleccionados[0].tipo === "aleman") {
+            palabraAleman = emparejarSeleccionados[0].valor;
+            palabraEspanol = emparejarSeleccionados[1].valor;
+        } else {
+            palabraAleman = emparejarSeleccionados[1].valor;
+            palabraEspanol = emparejarSeleccionados[0].valor;
         }
-        const contenedorAleman = document.getElementById("palabras-aleman");
-        const contenedorEspanol = document.getElementById("palabras-espanol");
-        const feedback = document.getElementById("mensaje-feedback");
+        
+        // Usa la variable global/externa
+        const correcto = bloquePalabrasActual.some(p => p.aleman === palabraAleman && p.espanol === palabraEspanol);
+        if (correcto) {
+            puntos++;
+            actualizarPuntos();
+            if (feedback) {
+                feedback.textContent = "¡Correcto!";
+                feedback.style.color = "green";
+            }
+            sonidoCorrcto.play();
+            emparejarSeleccionados.forEach(s => {
+                s.btn.style.visibility = "hidden";
+                s.btn.disabled = true;
+            });
+            
+            // --- ¡Añade esta línea para eliminar la pareja de bloquePalabrasActual! ---
+            // Filtra las palabras, eliminando la pareja que acaba de ser acertada
+            bloquePalabrasActual = bloquePalabrasActual.filter(p => !(p.aleman === palabraAleman && p.espanol === palabraEspanol));
+            // -------------------------------------------------------------------
 
-        bloquePalabras.forEach(p => {
-            const btnAlem = document.createElement("button");
-            btnAlem.textContent = p.aleman;
-            btnAlem.className = "btn-palabra";
-            btnAlem.addEventListener("click", () => seleccionarEmparejar("aleman", btnAlem, p.aleman));
-            if (contenedorAleman) contenedorAleman.appendChild(btnAlem);
-        });
-
-        espanolMezclado.forEach(espanol => {
-            const btnEsp = document.createElement("button");
-            btnEsp.textContent = espanol;
-            btnEsp.className = "btn-palabra";
-            btnEsp.addEventListener("click", () => seleccionarEmparejar("espanol", btnEsp, espanol));
-            if (contenedorEspanol) contenedorEspanol.appendChild(btnEsp);
-        });
-
-        function seleccionarEmparejar(tipo, btn, valor) {
-            if (emparejarSeleccionados.length === 2) return;
-            if (emparejarSeleccionados.find(s => s.tipo === tipo)) return;
-            btn.classList.add("seleccionada");
-            emparejarSeleccionados.push({ tipo, btn, valor });
-            if (emparejarSeleccionados.length === 2) {
-                let palabraAleman, palabraEspanol;
-                if (emparejarSeleccionados[0].tipo === "aleman") {
-                    palabraAleman = emparejarSeleccionados[0].valor;
-                    palabraEspanol = emparejarSeleccionados[1].valor;
+            if (bloquePalabrasActual.length === 0) { // <-- Ahora sí verificará el tamaño del bloque actual
+                emparejarBloque++;
+                if (emparejarBloque * BLOQUE_TAMANIO >= emparejarPalabras.length) {
+                    if (actividadJuego) actividadJuego.innerHTML = `<p>Has terminado la actividad Emparejar.</p>`;
                 } else {
-                    palabraAleman = emparejarSeleccionados[1].valor;
-                    palabraEspanol = emparejarSeleccionados[0].valor;
-                }
-                const correcto = bloquePalabras.some(p => p.aleman === palabraAleman && p.espanol === palabraEspanol);
-                if (correcto) {
-                    puntos++;
-                    actualizarPuntos();
-                    if (feedback) {
-                        feedback.textContent = "¡Correcto!";
-                        feedback.style.color = "green";
-                    }
-                    sonidoCorrcto.play();
-                    emparejarSeleccionados.forEach(s => {
-                        s.btn.style.visibility = "hidden";
-                        s.btn.disabled = true;
-                    });
-                    if (bloquePalabras.length === 0) {
-                        emparejarBloque++;
-                        if (emparejarBloque * BLOQUE_TAMANIO >= emparejarPalabras.length) {
-                            if (actividadJuego) actividadJuego.innerHTML = `<p>Has terminado la actividad Emparejar.</p>`;
-                        } else {
-                            setTimeout(() => {
-                                cargarBloqueEmparejar();
-                                if (feedback) feedback.textContent = "";
-                            }, 1000);
-                        }
-                    }
-                } else {
-                    puntos = Math.max(0, puntos - 1);
-                    actualizarPuntos();
-                    if (feedback) {
-                        feedback.textContent = "Incorrecto. Intenta de nuevo.";
-                        feedback.style.color = "red";
-                    }
-                    sonidoIncorrecto.play();
                     setTimeout(() => {
-                        emparejarSeleccionados.forEach(s => {
-                            s.btn.classList.remove("seleccionada");
-                        });
-                        emparejarSeleccionados = [];
+                        cargarBloqueEmparejar();
                         if (feedback) feedback.textContent = "";
                     }, 1000);
                 }
-                emparejarSeleccionados = [];
             }
+        } else {
+            puntos = Math.max(0, puntos - 1);
+            actualizarPuntos();
+            if (feedback) {
+                feedback.textContent = "Incorrecto. Intenta de nuevo.";
+                feedback.style.color = "red";
+            }
+            sonidoIncorrecto.play();
+            setTimeout(() => {
+                emparejarSeleccionados.forEach(s => {
+                    s.btn.classList.remove("seleccionada");
+                });
+                emparejarSeleccionados = [];
+                if (feedback) feedback.textContent = "";
+            }, 1000);
         }
+        emparejarSeleccionados = [];
     }
+}
 
     // Código de la actividad "Elección Múltiple"
     let eleccionPalabras = [];

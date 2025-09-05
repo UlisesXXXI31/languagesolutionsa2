@@ -87,13 +87,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         studentNameTitle.textContent = studentName;
         progressHistoryContainer.innerHTML = '<p>Cargando historial de progreso...</p>';
         
-        try {
-            // CORREGIDO: Usa la variable API_BASE_URL
-            const response = await fetch(`${API_BASE_URL}/api/progress/${userId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+       try {
+    // --- ¡ESTA ES LA LÍNEA CORREGIDA! ---
+    // La URL se cierra con la comilla ` y luego viene la coma y el objeto de opciones
+    const response = await fetch(`${API_BASE_URL}/api/progress/${userId}`, {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
             
             if (!response.ok) {
                 const errorData = await response.json();
@@ -109,10 +110,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const ul = document.createElement('ul');
+           
             data.progress.forEach(entry => {
                 const li = document.createElement('li');
-                const date = new Date(entry.timestamp).toLocaleString();
-                li.textContent = `Fecha: ${date}, Lección: ${entry.lessonName}, Tarea: ${entry.taskName}, Puntos: ${entry.score}`;
+                // He cambiado 'entry.timestamp' a 'entry.completedAt' para que coincida con tu modelo
+           const date = new Date(entry.completedAt).toLocaleString(); 
+                
+               // 1. Creamos un texto para el estado basándonos en el valor booleano
+           const statusText = entry.completed ? '✅ Completada' : '🔄 Incompleta';
+
+    // 2. Añadimos el nuevo texto al final de la línea
+             li.textContent = `Fecha: ${date}, Lección: ${entry.lessonName}, Tarea: ${entry.taskName}, Puntos: ${entry.score} | Estado: ${statusText}`;
                 ul.appendChild(li);
             });
             progressHistoryContainer.appendChild(ul);

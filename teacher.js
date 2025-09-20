@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Verificación de sesión (opcional pero recomendado)
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('role');
-    if (!token || userRole !== 'teacher') {
+    if (!token || userRole !== 'profesor') {
         window.location.href = 'login.html';
+        
         return;
     }
 

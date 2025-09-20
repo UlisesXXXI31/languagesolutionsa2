@@ -46,6 +46,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Función para obtener y mostrar la lista de alumnos
     async function fetchAndDisplayStudents() {
         try {
+            console.log("Iniciando la carga de alumnos...");
+            console.log("URL de la API:", `${API_BASE_URL}/api/users`);
+            console.log("Token de autorización:", token ? "Presente" : "Ausente");
+            
             studentListContainer.innerHTML = '<p>Cargando lista de alumnos...</p>';
             // CORREGIDO: Usa la variable API_BASE_URL
             const response = await fetch(`${API_BASE_URL}/api/users`, {
@@ -83,7 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             studentListContainer.innerHTML = `<p style="color:red;">Error al cargar alumnos: ${error.message}. Asegúrate de que el servidor está funcionando.</p>`;
-            console.error("Error:", error);
+            console.error("Error completo:", error);
         }
     }
 

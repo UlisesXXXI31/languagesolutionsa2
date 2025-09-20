@@ -36,12 +36,12 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error(data.message || 'Error en el inicio de sesión');
     }
 
-    if (data.user.role === 'student') {
+    if (data.user.role === 'alumno') {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
         localStorage.setItem('userData', JSON.stringify(data.user));
         window.location.href = 'index.html';
-    } else if (data.user.role === 'teacher') {
+    } else if (data.user.role === 'profesor') {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.user.role);
         localStorage.setItem('userData', JSON.stringify(data.user));

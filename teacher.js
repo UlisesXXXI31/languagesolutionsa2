@@ -1,16 +1,15 @@
-// teacher.js (VERSIÓN CORREGIDA Y OPTIMIZADA)
+// teacher.js (VERSIÓN CORREGIDA)
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- CONFIGURACIÓN PRINCIPAL ---
     // Define la URL base de tu API desplegada en Vercel
     const API_BASE_URL = 'https://ls-api-nine.vercel.app';
-    const dominioPermitido = '@europaschool.org';
     // ---------------------------------
 
     // Verificación de sesión
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('role');
-    if (!token || userRole !== 'profesor') {
+    if (!token || userRole !== 'teacher') {
         window.location.href = 'login.html';
         return;
     }
@@ -19,11 +18,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const studentForm = document.getElementById('form-add-student');
     const studentNameInput = document.getElementById('student-name');
     const studentEmailInput = document.getElementById('student-email');
-    const studentStatusMessage = document.getElementById('status-message-student');
-
+    
     const teacherForm = document.getElementById('form-add-teacher');
     const teacherNameInput = document.getElementById('teacher-name');
     const teacherEmailInput = document.getElementById('teacher-email');
+    
+    const studentStatusMessage = document.getElementById('status-message-student');
     const teacherStatusMessage = document.getElementById('status-message-teacher');
     
     const studentListContainer = document.getElementById('student-list');
@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function fetchAndDisplayStudents() {
         try {
             studentListContainer.innerHTML = '<p>Cargando lista de alumnos...</p>';
-            
             const response = await fetch(`${API_BASE_URL}/api/users`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -62,12 +61,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await response.json();
             studentListContainer.innerHTML = '';
 
-            if (data.users.length === 0) {
+            // Filtra solo los usuarios con el rol 'student'
+            const students = data.users.filter(user => user.role === 'student');
+
+            if (students.length === 0) {
                 studentListContainer.innerHTML = '<p>No hay alumnos registrados aún.</p>';
                 return;
             }
 
-            data.users.forEach(user => {
+            students.forEach(user => {
                 const studentCard = document.createElement('div');
                 studentCard.className = 'student-card';
                 studentCard.innerHTML = `
@@ -83,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             studentListContainer.innerHTML = `<p style="color:red;">Error al cargar alumnos: ${error.message}. Asegúrate de que el servidor está funcionando.</p>`;
-            console.error("Error completo:", error);
+            console.error("Error:", error);
         }
     }
 
@@ -132,117 +134,109 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Evento del botón para volver a la lista
-    if (btnBackToList) {
-        btnBackToList.addEventListener('click', () => {
-            studentProgressSection.style.display = 'none';
-            studentListContainer.style.display = 'block';
-        });
-    }
+    btnBackToList.addEventListener('click', () => {
+        studentProgressSection.style.display = 'none';
+        studentListContainer.style.display = 'block';
+    });
 
     // Evento para añadir un nuevo profesor al enviar el formulario
-    if (teacherForm) {
-        teacherForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = teacherNameInput.value;
-            const email = teacherEmailInput.value;
-            const password = generateRandomPassword();
-            teacherStatusMessage.textContent = "Añadiendo profesor...";
-            teacherStatusMessage.style.color = "black";
+    teacherForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = teacherNameInput.value;
+        const email = teacherEmailInput.value;
+        const password = generateRandomPassword();
+        teacherStatusMessage.textContent = "Añadiendo profesor...";
+        teacherStatusMessage.style.color = "black";
 
-            if (!email.endsWith(dominioPermitido)) {
-                teacherStatusMessage.textContent = `Error: El correo debe terminar en ${dominioPermitido}`;
+        if (!email.endsWith('@europaschool.org')) {
+            teacherStatusMessage.textContent = "Error: El correo debe terminar en @europaschool.org";
+            teacherStatusMessage.style.color = "red";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/users/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, email, password, role: 'teacher' })
+            });
+            
+            const data = await response.json();
+
+            if (response.ok) {
+                teacherStatusMessage.textContent = `¡Profesor ${name} añadido con éxito!`;
+                teacherStatusMessage.style.color = "green";
+                alert(`¡Importante! La contraseña temporal para ${name} es: ${password}`);
+                teacherForm.reset();
+                await fetchAndDisplayStudents();
+            } else {
+                teacherStatusMessage.textContent = `Error al añadir profesor: ${data.message}`;
                 teacherStatusMessage.style.color = "red";
-                return;
             }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/users/register`, { 
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name, email, password, role: 'profesor' })
-                });
-                
-                const data = await response.json();
-
-                if (response.ok) {
-                    teacherStatusMessage.textContent = `¡Profesor ${name} añadido con éxito!`;
-                    teacherStatusMessage.style.color = "green";
-                    alert(`¡Importante! La contraseña para ${name} es: ${password}`);
-                    
-                    teacherForm.reset();
-                    // No necesitas recargar la lista de alumnos al agregar un profesor
-                } else {
-                    teacherStatusMessage.textContent = `Error al añadir profesor: ${data.message}`;
-                    teacherStatusMessage.style.color = "red";
-                }
-            } catch (error) {
-                teacherStatusMessage.textContent = "Error de red. Intenta de nuevo más tarde.";
-                teacherStatusMessage.style.color = "red";
-                console.error("Error:", error);
-            }
-        });
-    }
+        } catch (error) {
+            teacherStatusMessage.textContent = "Error de red. Intenta de nuevo más tarde.";
+            teacherStatusMessage.style.color = "red";
+            console.error("Error:", error);
+        }
+    });
 
     // Evento para añadir un nuevo alumno al enviar el formulario
-    if (studentForm) {
-        studentForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = studentNameInput.value;
-            const email = studentEmailInput.value;
-            const password = generateRandomPassword();
-            studentStatusMessage.textContent = "Añadiendo alumno...";
-            studentStatusMessage.style.color = "black";
+    studentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = studentNameInput.value;
+        const email = studentEmailInput.value;
+        const password = 'EisA1';
+        studentStatusMessage.textContent = "Añadiendo alumno...";
+        studentStatusMessage.style.color = "black";
 
-            if (!email.endsWith(dominioPermitido)) {
-                studentStatusMessage.textContent = `Error: El correo debe terminar en ${dominioPermitido}`;
+        if (!email.endsWith('@europaschool.org')) {
+            studentStatusMessage.textContent = "Error: El correo debe terminar en @europaschool.org";
+            studentStatusMessage.style.color = "red";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/users/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, email, password, role: 'student' })
+            });
+            
+            const data = await response.json();
+
+            if (response.ok) {
+                studentStatusMessage.textContent = `¡Alumno ${name} añadido con éxito!`;
+                studentStatusMessage.style.color = "green";
+                studentForm.reset();
+                await fetchAndDisplayStudents();
+            } else {
+                studentStatusMessage.textContent = `Error al añadir alumno: ${data.message}`;
                 studentStatusMessage.style.color = "red";
-                return;
             }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/users/register`, { 
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name, email, password, role: 'alumno' })
-                });
-                
-                const data = await response.json();
-
-                if (response.ok) {
-                    studentStatusMessage.textContent = `¡Alumno ${name} añadido con éxito!`;
-                    studentStatusMessage.style.color = "green";
-                    alert(`¡Importante! La contraseña para ${name} es: ${password}`);
-                    
-                    studentForm.reset();
-                    await fetchAndDisplayStudents(); // Refresca la lista de alumnos
-                } else {
-                    studentStatusMessage.textContent = `Error al añadir alumno: ${data.message}`;
-                    studentStatusMessage.style.color = "red";
-                }
-            } catch (error) {
-                studentStatusMessage.textContent = "Error de red. Intenta de nuevo más tarde.";
-                studentStatusMessage.style.color = "red";
-                console.error("Error:", error);
-            }
-        });
-    }
-
+        } catch (error) {
+            studentStatusMessage.textContent = "Error de red. Intenta de nuevo más tarde.";
+            studentStatusMessage.style.color = "red";
+            console.error("Error:", error);
+        }
+    });
+    
     // Función para generar una contraseña aleatoria de 8 caracteres
     function generateRandomPassword() {
-        const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        let password = "";
-        for (let i = 0; i < 8; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return password;
+      const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+      let password = "";
+      for (let i = 0; i < 8; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return password;
     }
-    
-    // Carga inicial de la lista de alumnos
+
+    // --- CORRECCIÓN CLAVE ---
+    // Carga inicial de la lista de alumnos al iniciar la página.
     fetchAndDisplayStudents();
 });

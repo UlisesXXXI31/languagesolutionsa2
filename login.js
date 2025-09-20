@@ -3,7 +3,7 @@ const API_BASE_URL = 'https://ls-api-nine.vercel.app';
 const dominioPermitido = '@europaschool.org';
 
 document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById('login-form');
+    const loginForm = document.getElementById('btn-acceder');
     const inputEmail = document.getElementById('input-email');
     const inputPassword = document.getElementById('input-password');
     const statusMessage = document.getElementById('status-message');

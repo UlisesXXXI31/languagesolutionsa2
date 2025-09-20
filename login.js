@@ -3,11 +3,12 @@ const API_BASE_URL = 'https://ls-api-nine.vercel.app';
 const dominioPermitido = '@europaschool.org';
 
 document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById('btn-acceder');
+    const loginForm = document.getElementById('btn-aceder');
     const inputEmail = document.getElementById('input-email');
     const inputPassword = document.getElementById('input-password');
     const statusMessage = document.getElementById('status-message');
 
+    // Comprueba si el formulario de login existe antes de añadir el evento
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();

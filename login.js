@@ -1,4 +1,4 @@
-/ Archivo de entrada para el login
+// Archivo de entrada para el login
 const API_BASE_URL = 'https://ls-api-nine.vercel.app'; 
 const dominioPermitido = '@europaschool.org';
 

@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (response.ok) {
                 teacherStatusMessage.textContent = `¡Profesor ${name} añadido con éxito!`;
                 teacherStatusMessage.style.color = "green";
-                alert(`¡Importante! La contraseña temporal para ${name} es: ${password}`);
+                alert(`¡Importante! La contraseña para ${name} es: ${password}`);
                 teacherForm.reset();
                 await fetchAndDisplayStudents();
             } else {
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const name = studentNameInput.value;
         const email = studentEmailInput.value;
-        const password = 'EisA1';
+        const password =  generateRandomPassword();
         studentStatusMessage.textContent = "Añadiendo alumno...";
         studentStatusMessage.style.color = "black";
 
@@ -211,6 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await response.json();
 
             if (response.ok) {
+                alert(`¡Importante! La contraseña para ${name} es: ${password}`);
                 studentStatusMessage.textContent = `¡Alumno ${name} añadido con éxito!`;
                 studentStatusMessage.style.color = "green";
                 studentForm.reset();

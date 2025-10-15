@@ -386,7 +386,12 @@ console.log("Enviando datos de progreso con 'completed' dinámico:", progressDat
     function iniciarTraducir() {
         traducirPalabras = [...leccionActual.palabras];
         traducirIndice = 0;
+        mezclarPalabras(traducirPalabras);
         mostrarPalabraTraducir();
+    }
+
+    function mezclarPalabras(array){
+        array.sort(() => Math.random() - 0.5);
     }
 
     function mostrarPalabraTraducir() {

@@ -650,7 +650,12 @@ function seleccionarEmparejar(tipo, btn, valor) {
     function iniciarEscuchar() {
         escucharPalabras = [...leccionActual.palabras];
         escucharIndice = 0;
+        mezclarPalabras(escucharPalabras);
         mostrarPalabraEscuchar();
+    }
+    
+    function mezclarPalabras(array){
+         array.sort(() => Math.random() - 0.5);
     }
 
     function mostrarPalabraEscuchar() {
@@ -720,7 +725,11 @@ function seleccionarEmparejar(tipo, btn, valor) {
     function iniciarPronunciar(leccionSeleccionada) {
         palabrasPronunciacion = leccionSeleccionada.palabras.map(p => p.aleman);
         indicePalabraActual = 0;
+        mezclarPalabras(palabrasPronunciacion);
         mostrarPalabraPronunciacion();
+    }
+    function mezclarPalabras(array){
+         array.sort(() => Math.random() - 0.5);
     }
 
     function mostrarPalabraPronunciacion() {
